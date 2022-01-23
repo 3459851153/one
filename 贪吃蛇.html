@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/jquery-1.12.4.min.js"></script>
+    <title>Document</title>
+</head>
+<body>
+    <div class="box">
+    	<h1 id="fx"></h1>
+        <div class="content">
+            <span id="main"></span>
+            <!--<span class="main_child"></span>-->
+            <i>果实</i>
+        </div>
+    </div>
+</body>
+<script>
+    $(function(){
+    //设置网格格数
+    var box_a = 20;
+    var box_left = $(".box").offset().left;
+    var box_top = $(".box").offset().top;
+	//设置贪吃蛇大小尺寸
+    var bug_size = $(".box").width()/box_a;
+    //控制建设置
+    var appres = {top:0,bottom:0,left:0,right:0};
+    //设置贪吃蛇运动
+    var time_top;var time_bottom;var time_left;var time_right;
+    //贪吃蛇盒子
+    var bug = 0;
+    //渲染贪吃蛇的大小
+    bug_size_fu();
+    function bug_size_fu(){
+        for(let i=0;i<$(".box span").length;i++){
+            $(".box span").eq(i).css({
+            	width:bug_size,
+            	height:bug_size
+            });
+        }
+    }
+    //渲染贪吃蛇的果实
+    bug_result_fu();
+    function bug_result_fu(){
+    	setTimeout(function(){
+    		var result_rad = JSON.parse(JSON.stringify(Math.round(Math.random()*$(".box").width()))[0]);
+    		$(".content").append("<i id='result'></i>");
+    		$("#result").css({
+    				left:bug_size * result_rad,
+    				top:bug_size * result_rad,
+    				width:bug_size,
+    				height:bug_size
+    			}).html("果实");
+    	},1000)
+    }
+    document.onkeyup = function(ever){
+    	if(ever.keyCode == 38 && appres["bottom"]!=1){
+    		appres = {top:0,bottom:0,left:0,right:0};
+    		appres["top"]=1;appres["bottom"]=1;
+    		right(false,"right");top(true,"top");bottom(false,"bottom");left(false,"left");
+    	}
+    	else if(ever.keyCode == 40 && appres["top"]!=1){
+    		appres = {top:0,bottom:0,left:0,right:0};
+    		appres["top"]=1;appres["bottom"]=1;
+    		right(false,"right");top(false,"top");bottom(true,"bottom");left(false,"left");
+    	}
+    	else if(ever.keyCode == 37 && appres["left"]!=1){
+    		appres = {top:0,bottom:0,left:0,right:0};
+    		appres["left"]=1;appres["right"]=1;
+    		right(false,"right");top(false,"top");bottom(false,"bottom");left(true,"left");
+    	}
+    	else if(ever.keyCode == 39 && appres["right"]!=1){
+    		appres = {top:0,bottom:0,left:0,right:0};
+    		appres["left"]=1;appres["right"]=1;
+    		right(true,"right");top(false,"top");bottom(false,"bottom");left(false,"left");
+    	}
+    	else{
+    		return;
+    	}
+    }
+    //上
+    function top(bug_time,name){
+    	clearInterval(time_top);
+        time_top = setInterval(function(){
+            $("#main").stop().css("top",($("#main").offset().top - box_top) - bug_size);
+            bug_result();
+            bug_last_pos(name);
+        },500);
+    	if(bug_time!=true){
+    		clearInterval(time_top);
+    	}
+    }
+    //下
+    function bottom(bug_time,name){
+    	clearInterval(time_bottom);
+        time_bottom = setInterval(function(){
+            $("#main").stop().css("top",($("#main").offset().top - box_top) + bug_size);
+            bug_result();
+            bug_last_pos(name);
+        },500);
+    	if(bug_time!=true){
+    		clearInterval(time_bottom);
+    	}
+    }
+    //左
+    function left(bug_time,name){
+    	clearInterval(time_left);
+        time_left = setInterval(function(){
+            $("#main").stop().css("left",($("#main").offset().left - box_left) - bug_size);
+            bug_result();
+            bug_last_pos(name);
+        },500);
+    	if(bug_time!=true){
+    		clearInterval(time_left);
+    	}
+    }
+    //右
+    function right(bug_time,name){
+    	clearInterval(time_right);
+        time_right = setInterval(function(){
+            $("#main").stop().css("left",($("#main").offset().left - box_left) + bug_size);
+            bug_result();
+            bug_last_pos(name);
+        },500);
+    	if(bug_time!=true){
+    		clearInterval(time_right);
+    	}
+    }
+    //判断贪吃蛇是否吃到果实
+    function bug_result(){
+    	//果实位置
+    	try{
+	    	var result_appresY = $("#result").position().top;
+	    	var result_appresX = $("#result").position().left;
+    	}catch(e){
+    		//TODO handle the exception
+    	}
+    	//贪吃蛇位置
+    	var bug_appresY = $("#main").position().top;
+    	var bug_appresX = $("#main").position().left;
+        if(bug_appresY==result_appresY&&bug_appresX==result_appresX){
+    		bug+=1;
+    		//获取后删除果实
+    		$("#result").remove();
+    		//刷新果实
+    		bug_result_fu();
+    		//贪吃蛇加尾巴函数
+    		$(".content").append("<span class='main_child'></span>");
+    		//渲染尾巴
+    		bug_size_fu();
+    		//加分数
+    		$("#fx").html("分数：" + bug);
+        }
+    }
+    //贪吃蛇尾巴跟随位置
+//  function bug_last_pos(appres){
+//  	console.log(bug)
+//  	if(bug>0){
+//  		for(var i = 0;i<bug;i++){
+//	    	switch (appres){
+//	    		case 'top':
+//		    		$(".content .main_child").eq(i).animate({
+//		    			top:$("#main").position().top + ((i+1) * bug_size),
+//		    			left:$("#main").position().left
+//		    		},500)
+//	    			break;
+//	    		case 'bottom':
+//		    		$(".content .main_child").eq(i).animate({
+//		    			top:$("#main").position().top - ((i+1) * bug_size),
+//		    			left:$("#main").position().left
+//		    		},500)
+//	    			break;
+//	    		case 'left':
+//		    		$(".content .main_child").eq(i).animate({
+//		    			top:$("#main").position().top,
+//		    			left:$("#main").position().left + ((i+1) * bug_size)
+//		    		},500)
+//	    			break;
+//	    		case 'right':
+//		    		$(".content .main_child").eq(i).animate({
+//		    			top:$("#main").position().top,
+//		    			left:$("#main").position().left - ((i+1) * bug_size)
+//		    		},500)
+//	    			break;
+//	    		default:
+//	    			break;
+//	    	}
+//  	}
+//  	}
+//  }
+function bug_last_pos(appres){
+    	console.log(bug)
+    	if(bug>0){
+    		for(var i = 0;i<bug;i++){
+	    	switch (appres){
+	    		case 'top':
+		    		$(".content .main_child").eq(i).animate({
+		    			top:$("#main").position().top + ((i+1) * bug_size),
+		    			left:shuiba('top')
+		    		},500)
+	    			break;
+	    		case 'bottom':
+		    		$(".content .main_child").eq(i).animate({
+		    			top:$("#main").position().top - ((i+1) * bug_size),
+		    			left:shuiba('bottom')
+		    		},500)
+	    			break;
+	    		case 'left':
+		    		$(".content .main_child").eq(i).animate({
+		    			top:shuiba('left'),
+		    			left:$("#main").position().left + ((i+1) * bug_size)
+		    		},500)
+	    			break;
+	    		case 'right':
+		    		$(".content .main_child").eq(i).animate({
+		    			top:shuiba('right'),
+		    			left:$("#main").position().left - ((i+1) * bug_size)
+		    		},500)
+	    			break;
+	    		default:
+	    			break;
+	    	}
+    	}
+    	}
+    }
+function shuiba(name){
+    	if(name == 'top' || name == 'bottom'){
+    	var time;
+    		for(let i=0;i<$(".main_child").length;i++){
+    			(function(i){
+	    			clearInterval(time);
+	    			time = setInterval(function(){
+	    				if($(".main_child").eq(i).position().left == $("#main").position().left){
+	    					clearInterval(time);
+	    				}else{
+	    					$(".main_child").eq(i).css("left",$(".main_child").eq(i).position().left - bug_size);
+	    				}
+	    			},500)
+    			})(i)
+    		}
+    	}else if(name == 'left' || name == 'right'){
+    	var time;
+    		for(let i=0;i<$(".main_child").length;i++){
+    			(function(i){
+	    			clearInterval(time);
+	    			time = setInterval(function(){
+	    				if($(".main_child").eq(i).position().top == $("#main").position().top){
+	    					clearInterval(time);
+	    				}else{
+	    					$(".main_child").eq(i).css("top",$(".main_child").eq(i).position().top - bug_size);
+	    				}
+	    			},500)
+    			})(i)
+    		}
+    	}
+    }
+    })
+    
+//  function shuiba(name){
+//  	var time;
+//  	if(name == 'top' || name == 'bottom'){
+//  		for(let i=0;i<$(".main_child").length;i++){
+//  			(function(i){
+//	    			clearInterval(time);
+//	    			time = setInterval(function(){
+//	    				if($(".main_child").eq(i).position().left == $("#main").position().left){
+//	    					clearInterval(time);
+//	    				}else{
+//	    					$(".main_child").eq(i).css("left",$(".main_child").eq(i).position().left - bug_size);
+//	    				}
+//	    			},500)
+//  			})(i)
+//  		}
+//  	}
+//  }
+</script>
+</html>
